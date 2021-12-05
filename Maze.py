@@ -50,7 +50,7 @@ style.configure("TCombobox", foreground="black", background="white")
 style.configure("TScale", foreground="white", background="black")
 # Configuring combobox for selection of algorithms
 algo = tpx.Combobox(r, state="readonly", style="TCombobox")
-algo['values'] = ("TSP", "BFS")
+algo['values'] = ("A Star", "BFS", "DFS")
 algo.current(0)  # set the selected item
 algo.grid(column=0, row=0, padx=15, pady=5, sticky=W+E, columnspan=3)
 # Configuring Get_Start_Position Button
@@ -275,8 +275,8 @@ Flag = False
 # A* Algorithm
 
 
-def solvetsp(maze):
-    print("\n**Solving with TSP**\n")
+def solveastar(maze):
+    print("\n**Solving with A Star**\n")
     width = maze.width
     total = maze.width * maze.height
 
@@ -408,6 +408,46 @@ def solvebfs(maze):
         current = prev[current.Position[0] * width + current.Position[1]]
 
     return [path, [count, len(path), completed]]
+    # DFS Algorithm
+
+
+def solvedfs(maze):
+    start = maze.start
+    end = maze.end
+
+    width = maze.width
+
+    stack = deque([start])
+    shape = (maze.height, maze.width)
+    prev = [None] * (maze.width * maze.height)
+    visited = [False] * (maze.width * maze.height)
+
+    count = 0
+
+    completed = False
+
+    while stack:
+        count += 1
+        current = stack.pop()
+        if current == end:
+            completed = True
+            break
+
+        visited[current.Position[0] * width + current.Position[1]] = True
+
+        for n in current.Neighbours:
+            if n != None:
+                npos = n.Position[0] * width + n.Position[1]
+                if visited[npos] == False:
+                    stack.append(n)
+                    visited[npos] = True
+                    prev[npos] = current
+    path = deque()
+    current = end
+    while (current != None):
+        path.appendleft(current)
+        current = prev[current.Position[0] * width + current.Position[1]]
+    return [path, [count, len(path), completed]]
 
 # Solving Maze with given Algorithm
 
@@ -416,10 +456,12 @@ def solve(input_file):
     maze = globals()["maze"]
     nodec.set(f"Node Count: {maze.count}")
     ts = time.time()
-    if (algorithm == "TSP"):
-        [result, stats] = solvetsp(maze)
+    if (algorithm == "A Star"):
+        [result, stats] = solveastar(maze)
     elif (algorithm == "BFS"):
         [result, stats] = solvebfs(maze)
+    elif(algorithm == "DFS"):
+        [result, stats] = solvedfs(maze)
     te = time.time()
 
     total = round(te-ts, 6)
